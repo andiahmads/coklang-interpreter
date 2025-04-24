@@ -1,5 +1,5 @@
-
 #include "token.h"
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,10 +9,9 @@ typedef struct {
   int position;
   int readPosition;
   char ch;
-
 } Lexer;
 
-// membaca karakter berikutnya
+// Membaca karakter berikutnya
 void readChar(Lexer *l) {
   if (l->readPosition >= strlen(l->input)) {
     l->ch = 0;
@@ -20,175 +19,331 @@ void readChar(Lexer *l) {
     l->ch = l->input[l->readPosition];
   }
   l->position = l->readPosition;
-
   l->readPosition++;
 }
 
-// membuat lexer baru
+// Membuat lexer baru
 Lexer *newLexer(char *input) {
   Lexer *l = (Lexer *)malloc(sizeof(Lexer));
+  if (!l) {
+    printf("Memory allocation failed for Lexer\n");
+    exit(1);
+  }
   l->input = input;
   l->position = 0;
   l->readPosition = 0;
   l->ch = 0;
-
-  // baca karakter
-  // Jika input adalah "=+" dan readPosition adalah 0, maka l->ch = '='.
-  // if (l->readPosition < strlen(l->input)) {
-  //   l->ch = l->input[l->readPosition];
-  // } else {
-  //   l->ch = 0;
-  // }
-  // l->position = l->readPosition;
-  // l->readPosition++;
   readChar(l);
-
   return l;
+}
+
+bool isLetter(unsigned char ch) {
+  return ('a' <= ch && ch <= 'z') || ('A' <= ch && ch <= 'Z') || (ch == '_');
+}
+
+char *readIdentifier(Lexer *l) {
+  int position = l->position;
+  while (isLetter(l->ch)) { // Dukung angka dalam identifier
+    readChar(l);
+  }
+  int length = l->position - position;
+  char *identifier = malloc(length + 1);
+  if (!identifier) {
+    printf("Memory allocation failed\n");
+    exit(1);
+  }
+  strncpy(identifier, l->input + position, length);
+  identifier[length] = '\0';
+  return identifier;
+}
+
+typedef struct {
+  const char *key;
+  TokenType value;
+} KeywordEntry;
+
+// Array statis untuk keywords
+static const KeywordEntry keywords[] = {{"fn", "FUNCTION"}, {"let", "LET"}};
+static const int keywords_count = sizeof(keywords) / sizeof(keywords[0]);
+
+// Mencari TokenType berdasarkan identifier
+TokenType LookupIdent(const char *ident) {
+  if (ident == NULL) {
+    return IDENT;
+  }
+  for (int i = 0; i < keywords_count; i++) {
+    if (strcmp(ident, keywords[i].key) == 0) {
+      return keywords[i].value;
+    }
+  }
+  return IDENT;
+}
+
+bool isDigitx(unsigned char ch) { return '0' <= ch && ch <= '9'; }
+
+char *readNumber(Lexer *l) {
+  int position = l->position;
+  while (isDigitx(l->ch)) {
+    readChar(l);
+  }
+  int length = l->position - position;
+  char *number = malloc(length + 1);
+  if (!number) {
+    printf("Memory allocation failed\n");
+    exit(1);
+  }
+  strncpy(number, l->input + position, length);
+  number[length] = '\0';
+  return number;
 }
 
 Token *nextToken(Lexer *l) {
   Token *tok = (Token *)malloc(sizeof(Token));
-  tok->literal = (char *)malloc(
-      2 * sizeof(char)); // Untuk menyimpan 1 karakter + null terminator
+  if (!tok) {
+    printf("Memory allocation failed for Token\n");
+    exit(1);
+  }
+  tok->literal = NULL; // Alokasi dilakukan per case
 
-  // Lewati whitespace (jika ada)
   while (l->ch == ' ' || l->ch == '\t' || l->ch == '\n' || l->ch == '\r') {
     readChar(l);
   }
+
   switch (l->ch) {
   case '=':
     tok->type = ASSIGN;
+    tok->literal = (char *)malloc(2 * sizeof(char));
+    if (!tok->literal) {
+      printf("Memory allocation failed for literal\n");
+      free(tok);
+      exit(1);
+    }
     tok->literal[0] = l->ch;
     tok->literal[1] = '\0';
+    readChar(l);
     break;
 
   case ';':
     tok->type = SEMICOLON;
+    tok->literal = (char *)malloc(2 * sizeof(char));
+    if (!tok->literal) {
+      printf("Memory allocation failed for literal\n");
+      free(tok);
+      exit(1);
+    }
     tok->literal[0] = l->ch;
     tok->literal[1] = '\0';
+    readChar(l);
     break;
 
   case '(':
     tok->type = LPAREN;
+    tok->literal = (char *)malloc(2 * sizeof(char));
+    if (!tok->literal) {
+      printf("Memory allocation failed for literal\n");
+      free(tok);
+      exit(1);
+    }
     tok->literal[0] = l->ch;
     tok->literal[1] = '\0';
+    readChar(l);
     break;
 
   case ')':
     tok->type = RPAREN;
+    tok->literal = (char *)malloc(2 * sizeof(char));
+    if (!tok->literal) {
+      printf("Memory allocation failed for literal\n");
+      free(tok);
+      exit(1);
+    }
     tok->literal[0] = l->ch;
     tok->literal[1] = '\0';
+    readChar(l);
     break;
+
   case ',':
     tok->type = COMMA;
+    tok->literal = (char *)malloc(2 * sizeof(char));
+    if (!tok->literal) {
+      printf("Memory allocation failed for literal\n");
+      free(tok);
+      exit(1);
+    }
     tok->literal[0] = l->ch;
     tok->literal[1] = '\0';
+    readChar(l);
     break;
+
   case '+':
     tok->type = PLUS;
+    tok->literal = (char *)malloc(2 * sizeof(char));
+    if (!tok->literal) {
+      printf("Memory allocation failed for literal\n");
+      free(tok);
+      exit(1);
+    }
     tok->literal[0] = l->ch;
     tok->literal[1] = '\0';
+    readChar(l);
     break;
+
   case '{':
     tok->type = LBRACE;
+    tok->literal = (char *)malloc(2 * sizeof(char));
+    if (!tok->literal) {
+      printf("Memory allocation failed for literal\n");
+      free(tok);
+      exit(1);
+    }
     tok->literal[0] = l->ch;
     tok->literal[1] = '\0';
+    readChar(l);
     break;
+
   case '}':
     tok->type = RBRACE;
+    tok->literal = (char *)malloc(2 * sizeof(char));
+    if (!tok->literal) {
+      printf("Memory allocation failed for literal\n");
+      free(tok);
+      exit(1);
+    }
     tok->literal[0] = l->ch;
     tok->literal[1] = '\0';
+    readChar(l);
     break;
+
   case 0:
-    tok->type = EOF_TOK;
-    tok->literal[0] = l->ch;
-    tok->literal[1] = '\0';
+    tok->type = TOKEN_EOF;
+    tok->literal = (char *)malloc(1 * sizeof(char));
+    if (!tok->literal) {
+      printf("Memory allocation failed for literal\n");
+      free(tok);
+      exit(1);
+    }
+    tok->literal[0] = '\0';
     break;
+
   default:
-    tok->type = ILEGAL;
-    tok->literal[0] = l->ch;
-    tok->literal[1] = '\0';
+    if (isLetter(l->ch)) {
+      tok->literal = readIdentifier(l);
+      if (!tok->literal) {
+        printf("readIdentifier failed\n");
+        free(tok);
+        exit(1);
+      }
+      tok->type = LookupIdent(tok->literal);
+      // readChar sudah dipanggil di readIdentifier
+    } else if (isDigitx(l->ch)) {
+      tok->type = INT;
+      tok->literal = readNumber(l);
+      if (!tok->literal) {
+        printf("readNumber failed\n");
+        free(tok);
+        exit(1);
+      }
+      // readChar sudah dipanggil di readNumber
+    } else {
+      tok->type = ILLEGAL;
+      tok->literal = (char *)malloc(2 * sizeof(char));
+      if (!tok->literal) {
+        printf("Memory allocation failed for literal\n");
+        free(tok);
+        exit(1);
+      }
+      tok->literal[0] = l->ch;
+      tok->literal[1] = '\0';
+      readChar(l);
+    }
     break;
   }
 
-  readChar(l);
   return tok;
 }
 
 typedef struct {
   TokenType expectedType;
   char *expectedLiteral;
-
 } TestCase;
 
-// TestCase
 void testNextToken(char *input) {
-  // char *input = "=+(){},;";
   TestCase tests[] = {
-      {ASSIGN, "="}, {PLUS, "+"},      {LPAREN, "("},
-      {RPAREN, ")"}, {LBRACE, "{"},    {RBRACE, "}"},
-      {COMMA, ","},  {SEMICOLON, ";"}, {EOF_TOK, ""},
-
-  };
-
+      {LET, "let"},     {IDENT, "five"},  {ASSIGN, "="},     {INT, "5"},
+      {SEMICOLON, ";"}, {LET, "let"},     {IDENT, "ten"},    {ASSIGN, "="},
+      {INT, "10"},      {SEMICOLON, ";"}, {LET, "let"},      {IDENT, "add"},
+      {ASSIGN, "="},    {FUNCTION, "fn"}, {LPAREN, "("},     {IDENT, "x"},
+      {COMMA, ","},     {IDENT, "y"},     {RPAREN, ")"},     {LBRACE, "{"},
+      {IDENT, "x"},     {PLUS, "+"},      {IDENT, "y"},      {SEMICOLON, ";"},
+      {RBRACE, "}"},    {LET, "let"},     {IDENT, "result"}, {ASSIGN, "="},
+      {IDENT, "add"},   {LPAREN, "("},    {IDENT, "five"},   {COMMA, ","},
+      {IDENT, "ten"},   {RPAREN, ")"},    {SEMICOLON, ";"},  {TOKEN_EOF, ""}};
   Lexer *l = newLexer(input);
   for (int i = 0; i < sizeof(tests) / sizeof(tests[0]); i++) {
     Token *tok = nextToken(l);
-
-    // periksa tipe token
     if (strcmp(tok->type, tests[i].expectedType) != 0) {
-      printf("tests [%d]-tokentype wrong. expected= '%s', got= '%s'\n", i,
+      printf("tests[%d] - tokentype wrong. expected='%s', got='%s'\n", i,
              tests[i].expectedType, tok->type);
       exit(1);
     }
-
     if (strcmp(tok->literal, tests[i].expectedLiteral) != 0) {
-      printf("tests [%d]-literal wrong. expected= '%s', got= '%s'\n", i,
+      printf("tests[%d] - literal wrong. expected='%s', got='%s'\n", i,
              tests[i].expectedLiteral, tok->literal);
       exit(1);
     }
-
     free(tok->literal);
     free(tok);
   }
-
   free(l);
-  printf("all test passed \n");
+  printf("all tests passed\n");
 }
 
-int has_cok_extention(const char *filename) {
+int has_cok_extension(const char *filename) {
   const char *ext = strrchr(filename, '.');
   return (ext && strcmp(ext, ".cok") == 0);
 }
 
 int main() {
-  char *filelocation = "./cok-lang/example1.cok";
-  if (!has_cok_extention(filelocation)) {
-    printf("hanya file dengan ekstensi .cok yang diizinkan\n");
+  char *filelocation = "./cok-lang/example2.cok";
+  if (!has_cok_extension(filelocation)) {
+    printf("Hanya file dengan ekstensi .cok yang diizinkan\n");
     return 1;
   }
 
   FILE *file = fopen(filelocation, "r");
   if (!file) {
-    perror("gagal membuka file");
+    perror("Gagal membuka file");
     return 1;
   }
 
-  char line[256];
+  // Baca file ke dalam string
   char *input = malloc(1);
-  input[0] = '\n';
-
+  if (!input) {
+    printf("Memory allocation failed for input\n");
+    fclose(file);
+    return 1;
+  }
+  input[0] = '\0';
   size_t total_length = 0;
 
+  char line[256];
   while (fgets(line, sizeof(line), file)) {
     size_t line_len = strlen(line);
+    char *new_input = realloc(input, total_length + line_len + 1);
+    if (!new_input) {
+      printf("Memory reallocation failed\n");
+      free(input);
+      fclose(file);
+      return 1;
+    }
+    input = new_input;
+    strcpy(input + total_length, line);
     total_length += line_len;
-    input = realloc(input, total_length + 1);
-    strcat(input, line);
   }
-  testNextToken(input);
   fclose(file);
-  free(input);
 
+  printf("input file: %s\n", input);
+  testNextToken(input);
+  free(input);
   return 0;
 }
