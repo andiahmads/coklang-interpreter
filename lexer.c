@@ -63,7 +63,11 @@ typedef struct {
 } KeywordEntry;
 
 // Array statis untuk keywords
-static const KeywordEntry keywords[] = {{"fn", "FUNCTION"}, {"let", "LET"}};
+static const KeywordEntry keywords[] = {
+    {"fn", FUNCTION}, {"let", LET},   {"true", TRUE},     {"false", FALSE},
+    {"if", IF},       {"else", ELSE}, {"return", RETURN},
+
+};
 static const int keywords_count = sizeof(keywords) / sizeof(keywords[0]);
 
 // Mencari TokenType berdasarkan identifier
@@ -97,6 +101,14 @@ char *readNumber(Lexer *l) {
   return number;
 }
 
+char peekChar(Lexer *l) {
+  if (l->readPosition >= strlen(l->input)) {
+    return 0;
+  } else {
+    return l->input[l->readPosition];
+  }
+}
+
 Token *nextToken(Lexer *l) {
   Token *tok = (Token *)malloc(sizeof(Token));
   if (!tok) {
@@ -112,6 +124,71 @@ Token *nextToken(Lexer *l) {
   switch (l->ch) {
   case '=':
     tok->type = ASSIGN;
+    tok->literal = (char *)malloc(2 * sizeof(char));
+    if (!tok->literal) {
+      printf("Memory allocation failed for literal\n");
+      free(tok);
+      exit(1);
+    }
+    tok->literal[0] = l->ch;
+    tok->literal[1] = '\0';
+    readChar(l);
+    break;
+
+  case '+':
+    tok->type = PLUS;
+    tok->literal = (char *)malloc(2 * sizeof(char));
+    if (!tok->literal) {
+      printf("Memory allocation failed for literal\n");
+      free(tok);
+      exit(1);
+    }
+    tok->literal[0] = l->ch;
+    tok->literal[1] = '\0';
+    readChar(l);
+    break;
+
+  case '-':
+    tok->type = MINUS;
+    tok->literal = (char *)malloc(2 * sizeof(char));
+    if (!tok->literal) {
+      printf("Memory allocation failed for literal\n");
+      free(tok);
+      exit(1);
+    }
+    tok->literal[0] = l->ch;
+    tok->literal[1] = '\0';
+    readChar(l);
+    break;
+
+  case '!':
+    tok->type = BANG;
+    tok->literal = (char *)malloc(2 * sizeof(char));
+    if (!tok->literal) {
+      printf("Memory allocation failed for literal\n");
+      free(tok);
+      exit(1);
+    }
+    tok->literal[0] = l->ch;
+    tok->literal[1] = '\0';
+    readChar(l);
+    break;
+
+  case '*':
+    tok->type = ASTERISK;
+    tok->literal = (char *)malloc(2 * sizeof(char));
+    if (!tok->literal) {
+      printf("Memory allocation failed for literal\n");
+      free(tok);
+      exit(1);
+    }
+    tok->literal[0] = l->ch;
+    tok->literal[1] = '\0';
+    readChar(l);
+    break;
+
+  case '/':
+    tok->type = SLASH;
     tok->literal = (char *)malloc(2 * sizeof(char));
     if (!tok->literal) {
       printf("Memory allocation failed for literal\n");
@@ -175,19 +252,6 @@ Token *nextToken(Lexer *l) {
     readChar(l);
     break;
 
-  case '+':
-    tok->type = PLUS;
-    tok->literal = (char *)malloc(2 * sizeof(char));
-    if (!tok->literal) {
-      printf("Memory allocation failed for literal\n");
-      free(tok);
-      exit(1);
-    }
-    tok->literal[0] = l->ch;
-    tok->literal[1] = '\0';
-    readChar(l);
-    break;
-
   case '{':
     tok->type = LBRACE;
     tok->literal = (char *)malloc(2 * sizeof(char));
@@ -203,6 +267,32 @@ Token *nextToken(Lexer *l) {
 
   case '}':
     tok->type = RBRACE;
+    tok->literal = (char *)malloc(2 * sizeof(char));
+    if (!tok->literal) {
+      printf("Memory allocation failed for literal\n");
+      free(tok);
+      exit(1);
+    }
+    tok->literal[0] = l->ch;
+    tok->literal[1] = '\0';
+    readChar(l);
+    break;
+
+  case '<':
+    tok->type = LT;
+    tok->literal = (char *)malloc(2 * sizeof(char));
+    if (!tok->literal) {
+      printf("Memory allocation failed for literal\n");
+      free(tok);
+      exit(1);
+    }
+    tok->literal[0] = l->ch;
+    tok->literal[1] = '\0';
+    readChar(l);
+    break;
+
+  case '>':
+    tok->type = GT;
     tok->literal = (char *)malloc(2 * sizeof(char));
     if (!tok->literal) {
       printf("Memory allocation failed for literal\n");
@@ -269,15 +359,30 @@ typedef struct {
 
 void testNextToken(char *input) {
   TestCase tests[] = {
-      {LET, "let"},     {IDENT, "five"},  {ASSIGN, "="},     {INT, "5"},
-      {SEMICOLON, ";"}, {LET, "let"},     {IDENT, "ten"},    {ASSIGN, "="},
-      {INT, "10"},      {SEMICOLON, ";"}, {LET, "let"},      {IDENT, "add"},
-      {ASSIGN, "="},    {FUNCTION, "fn"}, {LPAREN, "("},     {IDENT, "x"},
-      {COMMA, ","},     {IDENT, "y"},     {RPAREN, ")"},     {LBRACE, "{"},
-      {IDENT, "x"},     {PLUS, "+"},      {IDENT, "y"},      {SEMICOLON, ";"},
-      {RBRACE, "}"},    {LET, "let"},     {IDENT, "result"}, {ASSIGN, "="},
-      {IDENT, "add"},   {LPAREN, "("},    {IDENT, "five"},   {COMMA, ","},
-      {IDENT, "ten"},   {RPAREN, ")"},    {SEMICOLON, ";"},  {TOKEN_EOF, ""}};
+      {LET, "let"},       {IDENT, "five"},  {ASSIGN, "="},
+      {INT, "5"},         {SEMICOLON, ";"}, {LET, "let"},
+      {IDENT, "ten"},     {ASSIGN, "="},    {INT, "10"},
+      {SEMICOLON, ";"},   {LET, "let"},     {IDENT, "add"},
+      {ASSIGN, "="},      {FUNCTION, "fn"}, {LPAREN, "("},
+      {IDENT, "x"},       {COMMA, ","},     {IDENT, "y"},
+      {RPAREN, ")"},      {LBRACE, "{"},    {IDENT, "x"},
+      {PLUS, "+"},        {IDENT, "y"},     {SEMICOLON, ";"},
+      {RBRACE, "}"},      {LET, "let"},     {IDENT, "result"},
+      {ASSIGN, "="},      {IDENT, "add"},   {LPAREN, "("},
+      {IDENT, "five"},    {COMMA, ","},     {IDENT, "ten"},
+      {RPAREN, ")"},      {SEMICOLON, ";"}, {BANG, "!"},
+      {MINUS, "-"},       {SLASH, "/"},     {ASTERISK, "*"},
+      {INT, "5"},         {SEMICOLON, ";"}, {INT, "5"},
+      {LT, "<"},          {INT, "10"},      {GT, ">"},
+      {INT, "5"},         {SEMICOLON, ";"}, {IF, "if"},
+      {LPAREN, "("},      {INT, "5"},       {LT, "<"},
+      {INT, "10"},        {RPAREN, ")"},    {LBRACE, "{"},
+      {RETURN, "return"}, {TRUE, "true"},   {SEMICOLON, ";"},
+      {RBRACE, "}"},      {ELSE, "else"},   {LBRACE, "{"},
+      {RETURN, "return"}, {FALSE, "false"}, {SEMICOLON, ";"},
+      {RBRACE, "}"},      {TOKEN_EOF, ""},
+
+  };
   Lexer *l = newLexer(input);
   for (int i = 0; i < sizeof(tests) / sizeof(tests[0]); i++) {
     Token *tok = nextToken(l);
@@ -304,7 +409,7 @@ int has_cok_extension(const char *filename) {
 }
 
 int main() {
-  char *filelocation = "./cok-lang/example2.cok";
+  char *filelocation = "./cok-lang/example4.cok";
   if (!has_cok_extension(filelocation)) {
     printf("Hanya file dengan ekstensi .cok yang diizinkan\n");
     return 1;

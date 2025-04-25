@@ -8,43 +8,35 @@ typedef struct {
 
 } Token;
 
+// keyword
 #define FUNCTION "FUNCTION"
 #define LET "LET"
+#define TRUE "TRUE"
+#define FALSE "FALSE"
+#define IF "IF"
+#define ELSE "IF"
+#define RETURN "RETURN"
+
 #define IDENT "IDENT"
 #define ILLEGAL "ILLEGAL"
 #define TOKEN_EOF "EOF" // Ganti EOF menjadi TOKEN_EOF
 #define INT "INT"
+
+// operator
 #define ASSIGN "="
 #define PLUS "+"
+#define MINUS "-"
+#define BANG "!"
+#define ASTERISK "*"
+#define SLASH "/"
+
 #define COMMA ","
 #define SEMICOLON ";"
 #define LPAREN "("
 #define RPAREN ")"
 #define LBRACE "{"
 #define RBRACE "}"
-
-// const char *ILEGAL = "ILEGAL";
-// const char *EOF_TOK = "EOF";
-//
-// // identifier + literal
-// const char *IDENT = "IDENT";
-// const char *INT = "INT";
-//
-// // operator
-// const char *ASSIGN = "=";
-// const char *PLUS = "+";
-//
-// // Delimeters
-// const char *COMMA = ",";
-// const char *SEMICOLON = ";";
-//
-// const char *LPAREN = "(";
-// const char *RPAREN = ")";
-// const char *LBRACE = "{";
-// const char *RBRACE = "}";
-//
-// // keyword
-// const char *FUNCTION = "FUNCTION";
-// const char *LET = "LET";
+#define LT "<"
+#define GT ">"
 
 #endif // !TOKEN_H
