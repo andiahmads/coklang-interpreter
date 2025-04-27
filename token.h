@@ -29,6 +29,8 @@ typedef struct {
 #define BANG "!"
 #define ASTERISK "*"
 #define SLASH "/"
+#define EQ "=="
+#define NOT_EQ "!="
 
 #define COMMA ","
 #define SEMICOLON ";"
