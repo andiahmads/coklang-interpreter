@@ -1,15 +1,9 @@
 #include "token.h"
+#include <lexer.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-typedef struct {
-  char *input;
-  int position;
-  int readPosition;
-  char ch;
-} Lexer;
 
 // Membaca karakter berikutnya
 void readChar(Lexer *l) {
@@ -23,13 +17,18 @@ void readChar(Lexer *l) {
 }
 
 // Membuat lexer baru
-Lexer *newLexer(char *input) {
+Lexer *newLexer(const char *input) {
   Lexer *l = (Lexer *)malloc(sizeof(Lexer));
   if (!l) {
     printf("Memory allocation failed for Lexer\n");
-    exit(1);
+    return NULL;
   }
-  l->input = input;
+  l->input = strdup(input);
+  if (!l->input) {
+    printf("Memory allocation failed for input\n");
+    free(l);
+    return NULL;
+  }
   l->position = 0;
   l->readPosition = 0;
   l->ch = 0;
@@ -165,7 +164,7 @@ Token *nextToken(Lexer *l) {
     if (!tok->literal) {
       printf("Memory allocation failed for literal\n");
       free(tok);
-      exit(1);
+      return NULL;
     }
     tok->literal[0] = l->ch;
     tok->literal[1] = '\0';
@@ -178,7 +177,7 @@ Token *nextToken(Lexer *l) {
     if (!tok->literal) {
       printf("Memory allocation failed for literal\n");
       free(tok);
-      exit(1);
+      return NULL;
     }
     tok->literal[0] = l->ch;
     tok->literal[1] = '\0';
@@ -190,11 +189,11 @@ Token *nextToken(Lexer *l) {
       char ch = l->ch;
       readChar(l);
       tok->type = NOT_EQ;
-      tok->literal = (char *)malloc(sizeof(char));
+      tok->literal = (char *)malloc(3 * sizeof(char));
       if (!tok->literal) {
         printf("Memory allocation failed for literal\n");
         free(tok);
-        exit(1);
+        return NULL;
       }
       tok->literal[0] = ch;
       tok->literal[1] = l->ch;
@@ -205,7 +204,7 @@ Token *nextToken(Lexer *l) {
       if (!tok->literal) {
         printf("Memory allocation failed for literal\n");
         free(tok);
-        exit(1);
+        return NULL;
       }
       tok->literal[0] = l->ch;
       tok->literal[1] = '\0';
@@ -219,7 +218,7 @@ Token *nextToken(Lexer *l) {
     if (!tok->literal) {
       printf("Memory allocation failed for literal\n");
       free(tok);
-      exit(1);
+      return NULL;
     }
     tok->literal[0] = l->ch;
     tok->literal[1] = '\0';
@@ -232,7 +231,7 @@ Token *nextToken(Lexer *l) {
     if (!tok->literal) {
       printf("Memory allocation failed for literal\n");
       free(tok);
-      exit(1);
+      return NULL;
     }
     tok->literal[0] = l->ch;
     tok->literal[1] = '\0';
@@ -245,7 +244,7 @@ Token *nextToken(Lexer *l) {
     if (!tok->literal) {
       printf("Memory allocation failed for literal\n");
       free(tok);
-      exit(1);
+      return NULL;
     }
     tok->literal[0] = l->ch;
     tok->literal[1] = '\0';
@@ -258,7 +257,7 @@ Token *nextToken(Lexer *l) {
     if (!tok->literal) {
       printf("Memory allocation failed for literal\n");
       free(tok);
-      exit(1);
+      return NULL;
     }
     tok->literal[0] = l->ch;
     tok->literal[1] = '\0';
@@ -271,7 +270,7 @@ Token *nextToken(Lexer *l) {
     if (!tok->literal) {
       printf("Memory allocation failed for literal\n");
       free(tok);
-      exit(1);
+      return NULL;
     }
     tok->literal[0] = l->ch;
     tok->literal[1] = '\0';
@@ -284,7 +283,7 @@ Token *nextToken(Lexer *l) {
     if (!tok->literal) {
       printf("Memory allocation failed for literal\n");
       free(tok);
-      exit(1);
+      return NULL;
     }
     tok->literal[0] = l->ch;
     tok->literal[1] = '\0';
@@ -297,7 +296,7 @@ Token *nextToken(Lexer *l) {
     if (!tok->literal) {
       printf("Memory allocation failed for literal\n");
       free(tok);
-      exit(1);
+      return NULL;
     }
     tok->literal[0] = l->ch;
     tok->literal[1] = '\0';
@@ -310,7 +309,7 @@ Token *nextToken(Lexer *l) {
     if (!tok->literal) {
       printf("Memory allocation failed for literal\n");
       free(tok);
-      exit(1);
+      return NULL;
     }
     tok->literal[0] = l->ch;
     tok->literal[1] = '\0';
@@ -323,7 +322,7 @@ Token *nextToken(Lexer *l) {
     if (!tok->literal) {
       printf("Memory allocation failed for literal\n");
       free(tok);
-      exit(1);
+      return NULL;
     }
     tok->literal[0] = l->ch;
     tok->literal[1] = '\0';
@@ -336,7 +335,7 @@ Token *nextToken(Lexer *l) {
     if (!tok->literal) {
       printf("Memory allocation failed for literal\n");
       free(tok);
-      exit(1);
+      return NULL;
     }
     tok->literal[0] = l->ch;
     tok->literal[1] = '\0';
@@ -349,7 +348,7 @@ Token *nextToken(Lexer *l) {
     if (!tok->literal) {
       printf("Memory allocation failed for literal\n");
       free(tok);
-      exit(1);
+      return NULL;
     }
     tok->literal[0] = '\0';
     break;
@@ -360,7 +359,7 @@ Token *nextToken(Lexer *l) {
       if (!tok->literal) {
         printf("readIdentifier failed\n");
         free(tok);
-        exit(1);
+        return NULL;
       }
       tok->type = LookupIdent(tok->literal);
       // readChar sudah dipanggil di readIdentifier
@@ -370,7 +369,7 @@ Token *nextToken(Lexer *l) {
       if (!tok->literal) {
         printf("readNumber failed\n");
         free(tok);
-        exit(1);
+        return NULL;
       }
       // readChar sudah dipanggil di readNumber
     } else {
@@ -379,7 +378,7 @@ Token *nextToken(Lexer *l) {
       if (!tok->literal) {
         printf("Memory allocation failed for literal\n");
         free(tok);
-        exit(1);
+        return NULL;
       }
       tok->literal[0] = l->ch;
       tok->literal[1] = '\0';
@@ -451,7 +450,7 @@ int has_cok_extension(const char *filename) {
   return (ext && strcmp(ext, ".cok") == 0);
 }
 
-int main() {
+int runLexer() {
   char *filelocation = "./cok-lang/example5.cok";
   if (!has_cok_extension(filelocation)) {
     printf("Hanya file dengan ekstensi .cok yang diizinkan\n");
